@@ -1,0 +1,194 @@
+<style>
+body {
+  -webkit-user-select: none;  /* Chrome all / Safari all */
+  -moz-user-select: none;     /* Firefox all */
+  -ms-user-select: none;      /* IE 10+ */
+  user-select: none;          /* Likely future */          
+}
+</style>
+
+<p>
+<button id="load">Load</button>
+<button id="save">Save</button>
+<button id="clear">Clear</button>
+<button id="spawn">Spawn</button>
+<button id="pause">Pause</button>
+<button id="grid">Grid On</button>
+</p>
+
+<canvas width="500" height="500" id="water"></canvas>
+
+<script>
+var canvas = document.getElementById('water');
+
+var pause = document.getElementById('pause');
+
+var grid = document.getElementById('grid');
+
+document.getElementById('load').addEventListener('click', function () {
+  	if (localStorage.getItem('matrix')) {
+    	matrix = JSON.parse(localStorage.getItem('matrix'));
+    }
+});
+
+document.getElementById('save').addEventListener('click', function () {
+    localStorage.setItem('matrix', JSON.stringify(matrix));
+});
+
+document.getElementById('clear').addEventListener('click', function () {
+    matrix = [];
+});
+
+document.getElementById('spawn').addEventListener('click', function () {
+    spawnCells(100);
+});
+
+var isPaused = false;
+
+var isGridEnabled = false;
+
+var isSpawning;
+
+pause.addEventListener('click', function () {
+    isPaused = !isPaused;
+    
+    pause.innerHTML = isPaused ? 'Resume' : 'Pause';    
+});
+
+grid.addEventListener('click', function () {
+    isGridEnabled = !isGridEnabled;
+    
+    grid.innerHTML = isGridEnabled ? 'Grid Off' : 'Grid On';    
+});
+
+var isMouseDown = false;
+
+canvas.addEventListener('mousedown', function (evt) {
+    var col = Math.floor(evt.offsetX / 10);
+    var row = Math.floor(evt.offsetY / 10);
+    var idx = row * 50 + col;
+    
+    isSpawning = !matrix[idx];
+    
+    matrix[idx] = isSpawning;
+    
+    isMouseDown = true;
+});
+
+canvas.addEventListener('mouseup', function (evt) {
+    isMouseDown = false;
+});
+
+canvas.addEventListener('mousemove', function (evt) {
+    if (isMouseDown) {        
+        var col = Math.floor(evt.offsetX / 10);
+        var row = Math.floor(evt.offsetY / 10);
+        var idx = row * 50 + col;
+
+        if (col >= 0 && col < 50 && row >= 0 && row < 50) {
+            matrix[idx] = isSpawning;
+        }
+    }
+});
+
+var context = canvas.getContext('2d');
+
+context.fillStyle = 'black';
+context.fillRect(0, 0, 500, 500);
+
+function drawMatrix() {
+    var idx = 0;
+    
+    for (var row = 0; row < 50; row++) {
+        for (var col = 0; col < 50; col++) {
+            if (matrix[idx]) {
+                context.fillStyle = 'blue';
+                context.fillRect(col * 10, row * 10, 10, 10);
+            }
+            
+            if (isGridEnabled) {
+                context.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                context.strokeRect(col * 10, row * 10, 10, 10);
+            }
+            
+            idx++;
+        }
+    }
+}
+
+var neighOffsets = [
+    { x: 0, y: -1 },
+    { x: 1, y: -1 },
+    { x: 1, y: 0 },
+    { x: 1, y: 1 },
+    { x: 0, y: 1 },
+    { x: -1, y: 1 },
+    { x: -1, y: 0 },
+    { x: -1, y: -1 }
+];
+
+function progressMatrix() {
+    var idx = 0;
+    
+    var newMatrix = [];
+        
+    for (var row = 0; row < 50; row++) {
+        for (var col = 0; col < 50; col++) {
+            var neighCount = 0;
+            
+            newMatrix[idx] = matrix[idx];
+            
+            for (var neigh = 0; neigh < 8; neigh++) {
+                var neighX = (col + neighOffsets[neigh].x + 50) % 50;
+                var neighY = (row + neighOffsets[neigh].y + 50) % 50;
+                
+                if (matrix[neighY * 50 + neighX]) {
+                    neighCount++;
+                }
+            }           
+                       
+            if (matrix[idx]) {
+                if (neighCount < 2) {
+                    newMatrix[idx] = false;
+                } else if (neighCount > 3) {
+                    newMatrix[idx] = false;
+                }
+            } else {
+                if (neighCount === 3) {
+                    newMatrix[idx] = true;
+                }
+            }
+        
+        	idx++;
+        }
+    }
+    
+    matrix = newMatrix;
+}
+
+var matrix = [];
+
+function spawnCells(howMany) {
+    for (var i = 0; i < howMany; i++) {
+        matrix[Math.floor(Math.random() * 50 * 50)] = true;
+    }
+}
+
+function drawFrame() {
+    context.fillStyle = 'black';
+  	context.globalAlpha = 0.25;
+    context.fillRect(0, 0, 500, 500);
+  	context.globalAlpha = 1;
+    
+    drawMatrix();
+
+    if (!isPaused) {
+		progressMatrix();
+    }
+ 
+    setTimeout(drawFrame, 60);
+}
+
+spawnCells(100);
+drawFrame();
+</script>
