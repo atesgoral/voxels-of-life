@@ -35,7 +35,9 @@ body {
 
 <script>
 var camera, scene, renderer;
-var mesh;
+var group;
+
+var cubes = [];
 
 init();
 animate();
@@ -47,7 +49,7 @@ function init() {
 
     scene = new THREE.Scene();
 
-    var ambientLight = new THREE.AmbientLight( 0x000000 );
+    var ambientLight = new THREE.AmbientLight(0x000000);
     scene.add( ambientLight );
 
     var lights = [];
@@ -55,19 +57,37 @@ function init() {
     lights[1] = new THREE.PointLight( 0xffffff, 1, 0 );
     lights[2] = new THREE.PointLight( 0xffffff, 1, 0 );
     
-    lights[0].position.set( 0, 200, 0 );
-    lights[1].position.set( 100, 200, 100 );
-    lights[2].position.set( -100, -200, -100 );
+    lights[0].position.set(0, 1000, 0);
+    lights[1].position.set(500, 1000, 500);
+    lights[2].position.set(-500, -1000, -500);
 
     scene.add( lights[0] );
     scene.add( lights[1] );
     scene.add( lights[2] );
     
-    var geometry = new THREE.BoxGeometry( 20, 20, 20 );
-    var material = new THREE.MeshLambertMaterial({ color: '#0000ff' });
+    var geometry = new THREE.BoxGeometry(10, 10, 10);
+    var material = new THREE.MeshLambertMaterial({ color: 0x0000ff });
 
-    mesh = new THREE.Mesh( geometry, material );
-    scene.add( mesh );
+    group = new THREE.Group();
+
+    for (var i = 0; i < 50; i++) {
+        for (var j = 0; j < 50; j++) {
+            var mesh = new THREE.Mesh(geometry, material);
+
+            mesh.translateX((i - 25) * 10);
+            mesh.translateY((j - 25) * 10);
+
+            mesh.visible = false;
+
+            group.add(mesh);
+
+            cubes[j * 50 + i] = mesh;
+        }
+    }
+
+    group.add(mesh);
+
+    scene.add( group );
 
     renderer = new THREE.WebGLRenderer();
     renderer.setPixelRatio( window.devicePixelRatio );
@@ -93,11 +113,10 @@ function animate() {
 
     requestAnimationFrame( animate );
 
-    mesh.rotation.x += 0.005;
-    mesh.rotation.y += 0.01;
+    group.rotation.x += 0.005;
+    group.rotation.y += 0.01;
 
     renderer.render( scene, camera );
-
 }
 
 
@@ -171,25 +190,26 @@ var isMouseDown = false;
 //     }
 // });
 
-// function drawMatrix() {
-//     var idx = 0;
+function drawMatrix() {
+    var idx = 0;
     
-//     for (var row = 0; row < 50; row++) {
-//         for (var col = 0; col < 50; col++) {
-//             if (matrix[idx]) {
-//                 context.fillStyle = 'blue';
-//                 context.fillRect(col * 10, row * 10, 10, 10);
-//             }
+    for (var row = 0; row < 50; row++) {
+        for (var col = 0; col < 50; col++) {
+            cubes[idx].visible = !!matrix[idx];
+            // if (matrix[idx]) {
+            //     context.fillStyle = 'blue';
+            //     context.fillRect(col * 10, row * 10, 10, 10);
+            // }
             
-//             if (isGridEnabled) {
-//                 context.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-//                 context.strokeRect(col * 10, row * 10, 10, 10);
-//             }
+            // if (isGridEnabled) {
+            //     context.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            //     context.strokeRect(col * 10, row * 10, 10, 10);
+            // }
             
-//             idx++;
-//         }
-//     }
-// }
+            idx++;
+        }
+    }
+}
 
 var neighOffsets = [
     { x: 0, y: -1 },
@@ -250,8 +270,7 @@ function spawnCells(howMany) {
 }
 
 function drawFrame() {
-  
-//    drawMatrix();
+    drawMatrix();
 
     if (!isPaused) {
 		progressMatrix();
