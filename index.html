@@ -198,6 +198,7 @@ function animate(ts) {
 
     // group.rotation.x += 0.005;
     // group.rotation.y += 0.01;
+    group.rotation.z += 0.005;
 
     renderer.render( scene, camera );
 }
@@ -232,15 +233,7 @@ var isMouseDown = false,
     mouseDownPoint,
     mouseDownRotation;
 
-renderer.domElement.addEventListener('mousedown', function (evt) {
-    // var col = Math.floor(evt.offsetX / 10);
-    // var row = Math.floor(evt.offsetY / 10);
-    // var idx = row * 50 + col;
-    
-    // isSpawning = !matrix[idx];
-    
-    // matrix[idx] = isSpawning;
-    
+renderer.domElement.addEventListener('mousedown', function (evt) {    
     isMouseDown = true;
 
     mouseDownPoint = {
@@ -266,13 +259,6 @@ renderer.domElement.addEventListener('mousemove', function (evt) {
         group.rotation.y = mouseDownRotation.y + 2 * Math.PI * dx / renderer.domElement.width;
         group.rotation.x = mouseDownRotation.x + 2 * Math.PI * dy / renderer.domElement.height;
 
-        // var col = Math.floor(evt.offsetX / 10);
-        // var row = Math.floor(evt.offsetY / 10);
-        // var idx = row * 50 + col;
-
-        // if (col >= 0 && col < 50 && row >= 0 && row < 50) {
-        //     matrix[idx] = isSpawning;
-        // }
     }
 });
 
