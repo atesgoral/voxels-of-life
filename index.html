@@ -85,8 +85,8 @@ var group;
 
 var matrix = [];
 
-var MATRIX_SIZE = 30;
-var CUBE_SIZE = 10;
+var MATRIX_SIZE = 40;
+var CUBE_SIZE = 5;
 
 function spawnCells(howMany) {
     for (var i = 0; i < howMany; i++) {
@@ -176,6 +176,8 @@ function init() {
 
     //spawnCells(100);
     stamp('pulsar');
+
+    drawMatrix();    
 }
 
 function onWindowResize() {
@@ -189,9 +191,7 @@ function onWindowResize() {
 
 function animate() {
 
-    setTimeout(function () {
-        requestAnimationFrame( animate );
-    }, 1);
+    requestAnimationFrame( animate );
 
     drawMatrix();
 
