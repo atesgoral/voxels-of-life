@@ -31,16 +31,89 @@ body {
         <button id="spawn">Spawn</button>
         <button id="pause">Pause</button>
         <button id="grid">Grid On</button>
+        <select id="pattern">
+            <option selected>glider</option>
+            <option>lwss</option>
+            <option>pulsar</option>
+        </select>
+        <button id="stamp">Stamp</button>
     </div>
 
 <script>
+var patterns = {
+    glider: [
+        [ 0, 1, 0 ],
+        [ 0, 0, 1 ],
+        [ 1, 1, 1 ]
+    ],
+    lwss: [
+        [ 1, 0, 0, 1, 0 ],
+        [ 0, 0, 0, 0, 1 ],
+        [ 1, 0, 0, 0, 1 ],
+        [ 0, 1, 1, 1, 1 ]
+    ],
+    pulsar: [
+        [ 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0 ],
+        [ 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0 ],
+        [ 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1 ],
+        [ 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1 ],
+        [ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ],
+        [ 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0 ],
+        [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+        [ 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0 ],
+        [ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ],
+        [ 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1 ],
+        [ 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1 ],
+        [ 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0 ],
+        [ 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0 ]
+    ]
+};
+
+var neighOffsets = [
+    { x: 0, y: -1 },
+    { x: 1, y: -1 },
+    { x: 1, y: 0 },
+    { x: 1, y: 1 },
+    { x: 0, y: 1 },
+    { x: -1, y: 1 },
+    { x: -1, y: 0 },
+    { x: -1, y: -1 }
+];
+
 var camera, scene, renderer;
 var group;
+
+var matrix = [];
+
+var MATRIX_SIZE = 30;
+var CUBE_SIZE = 10;
+
+function spawnCells(howMany) {
+    for (var i = 0; i < howMany; i++) {
+        matrix[Math.floor(Math.random() * MATRIX_SIZE * MATRIX_SIZE)] = true;
+    }
+}
+
+var generations = [];
 
 var cubes = [];
 
 init();
 animate();
+
+function stamp(patternName) {
+    var pattern = patterns[patternName];
+
+    var cx = Math.floor((MATRIX_SIZE - pattern[0].length) / 2),
+        cy = Math.floor((MATRIX_SIZE - pattern.length) / 2);
+
+    for (var row = 0; row < pattern.length; row++) {
+        var patternRow = pattern[row];
+        for (var col = 0; col < patternRow.length; col++) {
+            matrix[(cy + row) * MATRIX_SIZE + cx + col] = !!patternRow[col];
+        }
+    }
+}
 
 function init() {
 
@@ -65,23 +138,28 @@ function init() {
     scene.add( lights[1] );
     scene.add( lights[2] );
     
-    var geometry = new THREE.BoxGeometry(10, 10, 10);
+    var geometry = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
     var material = new THREE.MeshLambertMaterial({ color: 0x0000ff });
 
     group = new THREE.Group();
 
-    for (var i = 0; i < 50; i++) {
-        for (var j = 0; j < 50; j++) {
-            var mesh = new THREE.Mesh(geometry, material);
+    var idx = 0;
 
-            mesh.translateX((i - 25) * 10);
-            mesh.translateY((j - 25) * 10);
+    for (var k = 0; k < MATRIX_SIZE; k++) {
+        for (var i = 0; i < MATRIX_SIZE; i++) {
+            for (var j = 0; j < MATRIX_SIZE; j++) {
+                var mesh = new THREE.Mesh(geometry, material);
 
-            mesh.visible = false;
+                mesh.translateX((i - MATRIX_SIZE / 2) * CUBE_SIZE);
+                mesh.translateY((j - MATRIX_SIZE / 2) * CUBE_SIZE);
+                mesh.translateZ((k - MATRIX_SIZE / 2) * CUBE_SIZE);
 
-            group.add(mesh);
+                mesh.visible = false;
 
-            cubes[j * 50 + i] = mesh;
+                group.add(mesh);
+
+                cubes[idx++] = mesh;
+            }
         }
     }
 
@@ -94,10 +172,10 @@ function init() {
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
-    //
-
     window.addEventListener( 'resize', onWindowResize, false );
 
+    //spawnCells(100);
+    stamp('pulsar');
 }
 
 function onWindowResize() {
@@ -105,13 +183,21 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setMATRIX_Size( window.innerWidth, window.innerHeight );
 
 }
 
 function animate() {
 
-    requestAnimationFrame( animate );
+    setTimeout(function () {
+        requestAnimationFrame( animate );
+    }, 1);
+
+    drawMatrix();
+
+    if (!isPaused) {
+        progressMatrix();
+    }
 
     group.rotation.x += 0.005;
     group.rotation.y += 0.01;
@@ -140,6 +226,10 @@ document.getElementById('clear').addEventListener('click', function () {
 
 document.getElementById('spawn').addEventListener('click', function () {
     spawnCells(100);
+});
+
+document.getElementById('stamp').addEventListener('click', function () {
+    stamp(document.getElementById('pattern').value);
 });
 
 var isPaused = false;
@@ -192,52 +282,35 @@ var isMouseDown = false;
 
 function drawMatrix() {
     var idx = 0;
-    
-    for (var row = 0; row < 50; row++) {
-        for (var col = 0; col < 50; col++) {
-            cubes[idx].visible = !!matrix[idx];
-            // if (matrix[idx]) {
-            //     context.fillStyle = 'blue';
-            //     context.fillRect(col * 10, row * 10, 10, 10);
-            // }
-            
-            // if (isGridEnabled) {
-            //     context.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-            //     context.strokeRect(col * 10, row * 10, 10, 10);
-            // }
-            
-            idx++;
+
+    for (var gen = 0; gen < MATRIX_SIZE; gen++) {
+        var matrix = generations[gen];
+
+        for (var row = 0; row < MATRIX_SIZE; row++) {
+            for (var col = 0; col < MATRIX_SIZE; col++) {
+                cubes[idx].visible = matrix && !!matrix[row * MATRIX_SIZE + col];
+                idx++;
+            }
         }
     }
 }
-
-var neighOffsets = [
-    { x: 0, y: -1 },
-    { x: 1, y: -1 },
-    { x: 1, y: 0 },
-    { x: 1, y: 1 },
-    { x: 0, y: 1 },
-    { x: -1, y: 1 },
-    { x: -1, y: 0 },
-    { x: -1, y: -1 }
-];
 
 function progressMatrix() {
     var idx = 0;
     
     var newMatrix = [];
         
-    for (var row = 0; row < 50; row++) {
-        for (var col = 0; col < 50; col++) {
+    for (var row = 0; row < MATRIX_SIZE; row++) {
+        for (var col = 0; col < MATRIX_SIZE; col++) {
             var neighCount = 0;
             
             newMatrix[idx] = matrix[idx];
             
             for (var neigh = 0; neigh < 8; neigh++) {
-                var neighX = (col + neighOffsets[neigh].x + 50) % 50;
-                var neighY = (row + neighOffsets[neigh].y + 50) % 50;
+                var neighX = (col + neighOffsets[neigh].x + MATRIX_SIZE) % MATRIX_SIZE;
+                var neighY = (row + neighOffsets[neigh].y + MATRIX_SIZE) % MATRIX_SIZE;
                 
-                if (matrix[neighY * 50 + neighX]) {
+                if (matrix[neighY * MATRIX_SIZE + neighX]) {
                     neighCount++;
                 }
             }           
@@ -257,30 +330,15 @@ function progressMatrix() {
         	idx++;
         }
     }
+
+    generations.push(matrix);
+
+    if (generations.length > MATRIX_SIZE) {
+        generations.shift();
+    }
     
     matrix = newMatrix;
 }
-
-var matrix = [];
-
-function spawnCells(howMany) {
-    for (var i = 0; i < howMany; i++) {
-        matrix[Math.floor(Math.random() * 50 * 50)] = true;
-    }
-}
-
-function drawFrame() {
-    drawMatrix();
-
-    if (!isPaused) {
-		progressMatrix();
-    }
- 
-    setTimeout(drawFrame, 60);
-}
-
-spawnCells(100);
-drawFrame();
 </script>
 </body>
 </html>
