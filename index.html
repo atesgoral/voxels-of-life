@@ -25,12 +25,9 @@ body {
 </head>
 <body>
     <div class="controls">
-        <button id="load">Load</button>
-        <button id="save">Save</button>
         <button id="clear">Clear</button>
         <button id="spawn">Spawn</button>
         <button id="pause">Pause</button>
-        <button id="grid">Grid On</button>
         <select id="pattern">
             <option selected>glider</option>
             <option>lwss</option>
@@ -185,7 +182,7 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
-    renderer.setMATRIX_Size( window.innerWidth, window.innerHeight );
+    renderer.setSize( window.innerWidth, window.innerHeight );
 
 }
 
@@ -199,8 +196,8 @@ function animate() {
         progressMatrix();
     }
 
-    group.rotation.x += 0.005;
-    group.rotation.y += 0.01;
+    // group.rotation.x += 0.005;
+    // group.rotation.y += 0.01;
 
     renderer.render( scene, camera );
 }
@@ -208,17 +205,6 @@ function animate() {
 
 var pause = document.getElementById('pause');
 
-var grid = document.getElementById('grid');
-
-document.getElementById('load').addEventListener('click', function () {
-  	if (localStorage.getItem('matrix')) {
-    	matrix = JSON.parse(localStorage.getItem('matrix'));
-    }
-});
-
-document.getElementById('save').addEventListener('click', function () {
-    localStorage.setItem('matrix', JSON.stringify(matrix));
-});
 
 document.getElementById('clear').addEventListener('click', function () {
     matrix = [];
@@ -234,20 +220,12 @@ document.getElementById('stamp').addEventListener('click', function () {
 
 var isPaused = false;
 
-var isGridEnabled = false;
-
 var isSpawning;
 
 pause.addEventListener('click', function () {
     isPaused = !isPaused;
     
     pause.innerHTML = isPaused ? 'Resume' : 'Pause';    
-});
-
-grid.addEventListener('click', function () {
-    isGridEnabled = !isGridEnabled;
-    
-    grid.innerHTML = isGridEnabled ? 'Grid Off' : 'Grid On';    
 });
 
 var isMouseDown = false;
