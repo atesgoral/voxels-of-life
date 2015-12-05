@@ -186,7 +186,7 @@ function onWindowResize() {
 
 }
 
-function animate() {
+function animate(ts) {
 
     requestAnimationFrame( animate );
 
@@ -228,35 +228,53 @@ pause.addEventListener('click', function () {
     pause.innerHTML = isPaused ? 'Resume' : 'Pause';    
 });
 
-var isMouseDown = false;
+var isMouseDown = false,
+    mouseDownPoint,
+    mouseDownRotation;
 
-// canvas.addEventListener('mousedown', function (evt) {
-//     var col = Math.floor(evt.offsetX / 10);
-//     var row = Math.floor(evt.offsetY / 10);
-//     var idx = row * 50 + col;
+renderer.domElement.addEventListener('mousedown', function (evt) {
+    // var col = Math.floor(evt.offsetX / 10);
+    // var row = Math.floor(evt.offsetY / 10);
+    // var idx = row * 50 + col;
     
-//     isSpawning = !matrix[idx];
+    // isSpawning = !matrix[idx];
     
-//     matrix[idx] = isSpawning;
+    // matrix[idx] = isSpawning;
     
-//     isMouseDown = true;
-// });
+    isMouseDown = true;
 
-// canvas.addEventListener('mouseup', function (evt) {
-//     isMouseDown = false;
-// });
+    mouseDownPoint = {
+        x: evt.offsetX,
+        y: evt.offsetY
+    };
 
-// canvas.addEventListener('mousemove', function (evt) {
-//     if (isMouseDown) {        
-//         var col = Math.floor(evt.offsetX / 10);
-//         var row = Math.floor(evt.offsetY / 10);
-//         var idx = row * 50 + col;
+    mouseDownRotation = {
+        x: group.rotation.x,
+        y: group.rotation.y
+    };
+});
 
-//         if (col >= 0 && col < 50 && row >= 0 && row < 50) {
-//             matrix[idx] = isSpawning;
-//         }
-//     }
-// });
+renderer.domElement.addEventListener('mouseup', function (evt) {
+    isMouseDown = false;
+});
+
+renderer.domElement.addEventListener('mousemove', function (evt) {
+    if (isMouseDown) {
+        var dx = evt.offsetX - mouseDownPoint.x,
+            dy = evt.offsetY - mouseDownPoint.y;
+
+        group.rotation.y = mouseDownRotation.y + 2 * Math.PI * dx / renderer.domElement.width;
+        group.rotation.x = mouseDownRotation.x + 2 * Math.PI * dy / renderer.domElement.height;
+
+        // var col = Math.floor(evt.offsetX / 10);
+        // var row = Math.floor(evt.offsetY / 10);
+        // var idx = row * 50 + col;
+
+        // if (col >= 0 && col < 50 && row >= 0 && row < 50) {
+        //     matrix[idx] = isSpawning;
+        // }
+    }
+});
 
 function drawMatrix() {
     var idx = 0;
