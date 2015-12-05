@@ -83,7 +83,7 @@ var group;
 var matrix = [];
 
 var MATRIX_SIZE = 40;
-var CUBE_SIZE = 5;
+var CUBE_SIZE = 10;
 
 function spawnCells(howMany) {
     for (var i = 0; i < howMany; i++) {
@@ -136,13 +136,14 @@ function init() {
     scene.add( lights[2] );
 
     var geometry = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
-    var material = new THREE.MeshLambertMaterial({ color: 0x0000ff });
 
     group = new THREE.Group();
 
     var idx = 0;
 
     for (var k = 0; k < MATRIX_SIZE; k++) {
+        var material = new THREE.MeshLambertMaterial({ color: Math.round((1 - Math.abs(k * 2 / MATRIX_SIZE - 1)) * 255) });
+
         for (var i = 0; i < MATRIX_SIZE; i++) {
             for (var j = 0; j < MATRIX_SIZE; j++) {
                 var mesh = new THREE.Mesh(geometry, material);
@@ -268,7 +269,7 @@ function drawMatrix() {
 
         for (var row = 0; row < MATRIX_SIZE; row++) {
             for (var col = 0; col < MATRIX_SIZE; col++) {
-                cubes[idx].visible = matrix && !!matrix[row * MATRIX_SIZE + col];
+                cubes[idx].visible = !!(matrix && matrix[row * MATRIX_SIZE + col]);
                 idx++;
             }
         }
