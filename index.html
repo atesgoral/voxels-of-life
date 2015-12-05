@@ -8,12 +8,12 @@ body {
     -webkit-user-select: none;  /* Chrome all / Safari all */
     -moz-user-select: none;     /* Firefox all */
     -ms-user-select: none;      /* IE 10+ */
-    user-select: none;          /* Likely future */          
+    user-select: none;          /* Likely future */
     position: relative;
     margin: 0;
     padding: 0;
     background: #000;
-    overflow: hidden;  
+    overflow: hidden;
 }
 .controls {
     position: absolute;
@@ -126,7 +126,7 @@ function init() {
     lights[0] = new THREE.PointLight( 0xffffff, 1, 0 );
     lights[1] = new THREE.PointLight( 0xffffff, 1, 0 );
     lights[2] = new THREE.PointLight( 0xffffff, 1, 0 );
-    
+
     lights[0].position.set(0, 1000, 0);
     lights[1].position.set(500, 1000, 500);
     lights[2].position.set(-500, -1000, -500);
@@ -134,7 +134,7 @@ function init() {
     scene.add( lights[0] );
     scene.add( lights[1] );
     scene.add( lights[2] );
-    
+
     var geometry = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
     var material = new THREE.MeshLambertMaterial({ color: 0x0000ff });
 
@@ -174,7 +174,7 @@ function init() {
     //spawnCells(100);
     stamp('pulsar');
 
-    drawMatrix();    
+    drawMatrix();
 }
 
 function onWindowResize() {
@@ -225,15 +225,15 @@ var isSpawning;
 
 pause.addEventListener('click', function () {
     isPaused = !isPaused;
-    
-    pause.innerHTML = isPaused ? 'Resume' : 'Pause';    
+
+    pause.innerHTML = isPaused ? 'Resume' : 'Pause';
 });
 
 var isMouseDown = false,
     mouseDownPoint,
     mouseDownRotation;
 
-renderer.domElement.addEventListener('mousedown', function (evt) {    
+renderer.domElement.addEventListener('mousedown', function (evt) {
     isMouseDown = true;
 
     mouseDownPoint = {
@@ -279,24 +279,24 @@ function drawMatrix() {
 
 function progressMatrix() {
     var idx = 0;
-    
+
     var newMatrix = [];
-        
+
     for (var row = 0; row < MATRIX_SIZE; row++) {
         for (var col = 0; col < MATRIX_SIZE; col++) {
             var neighCount = 0;
-            
+
             newMatrix[idx] = matrix[idx];
-            
+
             for (var neigh = 0; neigh < 8; neigh++) {
                 var neighX = (col + neighOffsets[neigh].x + MATRIX_SIZE) % MATRIX_SIZE;
                 var neighY = (row + neighOffsets[neigh].y + MATRIX_SIZE) % MATRIX_SIZE;
-                
+
                 if (matrix[neighY * MATRIX_SIZE + neighX]) {
                     neighCount++;
                 }
-            }           
-                       
+            }
+
             if (matrix[idx]) {
                 if (neighCount < 2) {
                     newMatrix[idx] = false;
@@ -308,7 +308,7 @@ function progressMatrix() {
                     newMatrix[idx] = true;
                 }
             }
-        
+
         	idx++;
         }
     }
@@ -318,7 +318,7 @@ function progressMatrix() {
     if (generations.length > MATRIX_SIZE) {
         generations.shift();
     }
-    
+
     matrix = newMatrix;
 }
 </script>
