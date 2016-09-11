@@ -25,18 +25,18 @@ canvas {
 <body>
 <script>
 var patterns = {
-  glider: [
+  Glider: [
     [ 0, 1, 0 ],
     [ 0, 0, 1 ],
     [ 1, 1, 1 ]
   ],
-  lwss: [
+  LWSS: [
     [ 1, 0, 0, 1, 0 ],
     [ 0, 0, 0, 0, 1 ],
     [ 1, 0, 0, 0, 1 ],
     [ 0, 1, 1, 1, 1 ]
   ],
-  pulsar: [
+  Pulsar: [
     [ 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0 ],
     [ 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0 ],
     [ 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1 ],
@@ -64,12 +64,21 @@ var neighOffsets = [
   { x: -1, y: -1 }
 ];
 
-var voxels = {
+var config = {
   ambient: {
     color: '#000000'
   },
+  light1: {
+    color: '#ffffff'
+  },
+  light2: {
+    color: '#ffffff'
+  },
+  light3: {
+    color: '#ffffff'
+  },
   voxel: {
-    color: '#ff5a00'
+    color: '#00ffa4'//'#ff5a00'
   },
   rotation: {
     x: 30,
@@ -82,7 +91,7 @@ var voxels = {
       });
     }
   },
-  pattern: 'glider',
+  pattern: 'Glider',
   clear: function () {
     matrix = [];
   },
@@ -102,8 +111,8 @@ var group;
 
 var matrix = [];
 
-var MATRIX_SIZE = 40;
-var CUBE_SIZE = 10;
+var MATRIX_SIZE = 30;
+var CUBE_SIZE = 15;
 
 function spawnCells(howMany) {
   for (var i = 0; i < howMany; i++) {
@@ -115,7 +124,9 @@ var generations = [];
 
 var cubes = [];
 
+var ambientLight = null;
 var zMaterials = [];
+var lights = [];
 
 init();
 animate();
@@ -140,13 +151,12 @@ function init() {
 
   scene = new THREE.Scene();
 
-  var ambientLight = new THREE.AmbientLight(0x000000);
+  ambientLight = new THREE.AmbientLight(config.ambient.color);
   scene.add(ambientLight);
 
-  var lights = [];
-  lights[0] = new THREE.PointLight(0xffffff, 1, 0);
-  lights[1] = new THREE.PointLight(0xffffff, 1, 0);
-  lights[2] = new THREE.PointLight(0xffffff, 1, 0);
+  lights[0] = new THREE.PointLight(0, 1, 0);
+  lights[1] = new THREE.PointLight(0, 1, 0);
+  lights[2] = new THREE.PointLight(0, 1, 0);
 
   lights[0].position.set(0, 1000, 0);
   lights[1].position.set(500, 1000, 500);
@@ -195,8 +205,8 @@ function init() {
 
   window.addEventListener('resize', onWindowResize, false);
 
-  //spawnCells(100);
-  stamp('pulsar');
+  spawnCells(100);
+  // stamp(config.pattern);
 
   drawMatrix();
 }
@@ -217,16 +227,23 @@ function animate(ts) {
     progressMatrix();
   }
 
-  group.rotation.x = voxels.rotation.x / 180 * Math.PI;
-  group.rotation.y = voxels.rotation.y / 180 * Math.PI;
+  group.rotation.x = config.rotation.x / 180 * Math.PI;
+  group.rotation.y = config.rotation.y / 180 * Math.PI;
   group.rotation.z += 0.005;
+
+
+  ambientLight.color.set(config.ambient.color);
 
   var black = new THREE.Color(0);
 
   zMaterials.forEach(function (material, z) {
-    material.color = new THREE.Color(voxels.voxel.color);
+    material.color = new THREE.Color(config.voxel.color);
     material.color.lerp(black, Math.abs(z * 2 / MATRIX_SIZE - 1));
   });
+
+  lights[0].color.set(config.light1.color);
+  lights[1].color.set(config.light2.color);
+  lights[2].color.set(config.light3.color);
 
   renderer.render(scene, camera);
 }
@@ -248,8 +265,8 @@ renderer.domElement.addEventListener('mousedown', function (evt) {
   };
 
   mouseDownRotation = {
-    x: voxels.rotation.x,
-    y: voxels.rotation.y
+    x: config.rotation.x,
+    y: config.rotation.y
   };
 });
 
@@ -262,8 +279,8 @@ renderer.domElement.addEventListener('mousemove', function (evt) {
     var dx = evt.offsetX - mouseDownPoint.x,
       dy = evt.offsetY - mouseDownPoint.y;
 
-    voxels.rotation.y = (mouseDownRotation.y + 360 * dx / renderer.domElement.width + 360) % 360;
-    voxels.rotation.x = (mouseDownRotation.x + 360 * dy / renderer.domElement.height + 360) % 360;
+    config.rotation.y = (mouseDownRotation.y + 360 * dx / renderer.domElement.width + 360) % 360;
+    config.rotation.x = (mouseDownRotation.x + 360 * dy / renderer.domElement.height + 360) % 360;
 
     rotationFolder.__controllers.forEach(function (controller) {
       controller.updateDisplay();
@@ -333,31 +350,43 @@ function progressMatrix() {
 
 var gui = new dat.GUI();
 
-// var ambientFolder = gui.addFolder('Ambient');
-// ambientFolder.open();
-// ambientFolder.addColor(voxels.ambient, 'color');
+var ambientFolder = gui.addFolder('Ambient');
+ambientFolder.open();
+ambientFolder.addColor(config.ambient, 'color');
 
 var voxelFolder = gui.addFolder('Voxels');
 voxelFolder.open();
-voxelFolder.addColor(voxels.voxel, 'color');
+voxelFolder.addColor(config.voxel, 'color');
+
+var light1Folder = gui.addFolder('Light 1');
+light1Folder.open();
+light1Folder.addColor(config.light1, 'color');
+
+var light2Folder = gui.addFolder('Light 2');
+light2Folder.open();
+light2Folder.addColor(config.light2, 'color');
+
+var light3Folder = gui.addFolder('Light 3');
+light3Folder.open();
+light3Folder.addColor(config.light3, 'color');
 
 var rotationFolder = gui.addFolder('Rotation');
 rotationFolder.open();
-rotationFolder.add(voxels.rotation, 'x', 0, 360);
-rotationFolder.add(voxels.rotation, 'y', 0, 360);
-rotationFolder.add(voxels.rotation, 'reset');
+rotationFolder.add(config.rotation, 'x', 0, 360);
+rotationFolder.add(config.rotation, 'y', 0, 360);
+rotationFolder.add(config.rotation, 'reset');
 
 var patternFolder = gui.addFolder('Pattern');
 patternFolder.open();
-patternFolder.add(voxels, 'pattern', Object.keys(patterns));
-patternFolder.add(voxels, 'stamp');
+patternFolder.add(config, 'pattern', Object.keys(patterns));
+patternFolder.add(config, 'stamp');
 
 var randomFolder = gui.addFolder('Random');
 randomFolder.open();
-randomFolder.add(voxels, 'spawn');
+randomFolder.add(config, 'spawn');
 
-gui.add(voxels, 'clear');
-gui.add(voxels, 'pause');
+gui.add(config, 'clear');
+gui.add(config, 'pause');
 </script>
 </body>
 </html>
