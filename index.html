@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>Voxels of Life</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5.1/dat.gui.min.js"></script>
 <style>
 body {
   -webkit-user-select: none;  /* Chrome all / Safari all */
@@ -15,27 +17,9 @@ body {
   background: #000;
   overflow: hidden;
 }
-.controls {
-  position: absolute;
-  top: 0;
-  left: 0;
-  padding: 10px;
-}
 </style>
 </head>
 <body>
-  <div class="controls">
-    <button id="clear">Clear</button>
-    <button id="spawn">Spawn</button>
-    <button id="pause">Pause</button>
-    <select id="pattern">
-      <option selected>glider</option>
-      <option>lwss</option>
-      <option>pulsar</option>
-    </select>
-    <button id="stamp">Stamp</button>
-  </div>
-
 <script>
 var patterns = {
   glider: [
@@ -202,31 +186,9 @@ function animate(ts) {
   renderer.render( scene, camera );
 }
 
-
-var pause = document.getElementById('pause');
-
-
-document.getElementById('clear').addEventListener('click', function () {
-  matrix = [];
-});
-
-document.getElementById('spawn').addEventListener('click', function () {
-  spawnCells(100);
-});
-
-document.getElementById('stamp').addEventListener('click', function () {
-  stamp(document.getElementById('pattern').value);
-});
-
 var isPaused = false;
 
 var isSpawning;
-
-pause.addEventListener('click', function () {
-  isPaused = !isPaused;
-
-  pause.innerHTML = isPaused ? 'Resume' : 'Pause';
-});
 
 var isMouseDown = false,
   mouseDownPoint,
@@ -320,6 +282,36 @@ function progressMatrix() {
 
   matrix = newMatrix;
 }
+
+var gui = new dat.GUI();
+
+var voxels = {
+  pattern: 'glider',
+  clear: function () {
+    matrix = [];
+  },
+  spawn: function () {
+    spawnCells(100);
+  },
+  stamp: function () {
+    stamp(this.pattern);
+  },
+  pause: function () {
+    isPaused = !isPaused;
+  }
+};
+
+var patternFolder = gui.addFolder('Pattern');
+patternFolder.open();
+patternFolder.add(voxels, 'pattern', Object.keys(patterns));
+patternFolder.add(voxels, 'stamp');
+
+var randomFolder = gui.addFolder('Random');
+randomFolder.open();
+randomFolder.add(voxels, 'spawn');
+
+gui.add(voxels, 'clear');
+gui.add(voxels, 'pause');
 </script>
 </body>
 </html>
